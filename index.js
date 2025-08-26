@@ -26,13 +26,13 @@ app.use("/api/admin", adminRoutes)
 
 
 
-
+app.get('/', (req, res) => {
+    res.send('Xin chao')
+    });
 
 async function main() {
   await mongoose.connect(process.env.DB_URL);
-  app.get('/', (req, res) => {
-    res.send('Xin chao')
-    });
+  
 }
 
 main().then(() => console.log("Mongodb connect successfully!")).catch(err => console.log(err));
