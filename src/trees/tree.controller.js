@@ -15,7 +15,7 @@ try {
 
 const getAllTree = async(req,res)=>{
 try {
-    const trees= await Tree.find().sort({creatAt: -1});
+    const trees= await Tree.find().sort({createdAt: -1});
     res.status(200).send(trees)
 
 } catch (error) {
