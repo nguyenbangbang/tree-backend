@@ -8,13 +8,9 @@ require('dotenv').config()
 // middleware
 app.use(express.json());
 app.use(cors({
-  origin: [
-    'http://localhost:5173',
-    'https://tree-frontend-lake.vercel.app',
-    'https://tree-frontend-green.vercel.app' // ✅ thêm domain này
-  ],
-  credentials: true
-}));
+    origin: ['http://localhost:5173',"https://tree-frontend-lake.vercel.app"],
+    credentials: true
+}))
 
 //route
 const treeRoutes = require('./src/trees/tree.route');
