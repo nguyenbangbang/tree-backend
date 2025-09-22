@@ -30,7 +30,18 @@ const getOrderByEmail = async (req, res) => {
   }
 };
 
+const getAllOrders = async (req, res) => {
+  try {
+    const orders = await Order.find({}).sort({ createdAt: -1 });
+    res.status(200).json(orders);
+  } catch (error) {
+    console.error("Lỗi khi lấy tất cả đơn hàng", error);
+    res.status(500).json({ message: "Lỗi server khi lấy tất cả đơn hàng" });
+  }
+};
+
 module.exports = {
   createAOrder,
   getOrderByEmail,
+  getAllOrders,
 };
