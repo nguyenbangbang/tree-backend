@@ -1,61 +1,59 @@
-const mongoose = require('mongoose');
-const express = require('express');
-const Order = require('../orders/order.model');
-const Tree = require('../trees/tree.model');
+const express = require("express");
 const router = express.Router();
+const Order = require("../orders/order.model");
+const Tree = require("../trees/tree.model");
 
-
-// Function to calculate admin stats
+// GET /api/statistics — Admin dashboard stats
 router.get("/", async (req, res) => {
-    try {
-        // 1. Total number of orders
-        const totalOrders = await Order.countDocuments();
+  try {
+    // 1. Tổng số đơn hàng
+    const totalOrders = await Order.countDocuments();
 
-        // 2. Total sales (sum of all totalPrice from orders)
-        const totalSales = await Order.aggregate([
-            {
-                $group: {
-                    _id: null,
-                    totalSales: { $sum: "$totalPrice" },
-                }
-            }
-        ]);
+    // 2. Tổng doanh thu
+    const salesAggregate = await Order.aggregate([
+      {
+        $group: {
+          _id: null,
+          totalSales: { $sum: "$totalPrice" },
+        },
+      },
+    ]);
+    const totalSales = salesAggregate[0]?.totalSales || 0;
 
-        // 4. Trending books statistics: 
-        const trendingTreesCount = await Tree.aggregate([
-            { $match: { trending: true } },  // Match only trending books
-            { $count: "trendingTreesCount" }  // Return the count of trending books
-        ]);
-        
-        // If you want just the count as a number, you can extract it like this:
-        const trendingTrees = trendingTreesCount.length > 0 ? trendingTreesCount[0].trendingTreesCount : 0;
+    // 3. Số lượng cây trending
+    const trendingAggregate = await Tree.aggregate([
+      { $match: { trending: true } },
+      { $count: "count" },
+    ]);
+    const trendingTrees = trendingAggregate[0]?.count || 0;
 
-        // 5. Total number of books
-        const totalTrees = await Tree.countDocuments();
+    // 4. Tổng số cây
+    const totalTrees = await Tree.countDocuments();
 
-        // 6. Monthly sales (group by month and sum total sales for each month)
-        const monthlySales = await Order.aggregate([
-            {
-                $group: {
-                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },  // Group by year and month
-                    totalSales: { $sum: "$totalPrice" },  // Sum totalPrice for each month
-                    totalOrders: { $sum: 1 }  // Count total orders for each month
-                }
-            },
-            { $sort: { _id: 1 } }  
-        ]);
+    // 5. Doanh thu theo tháng
+    const monthlySales = await Order.aggregate([
+      {
+        $group: {
+          _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+          totalSales: { $sum: "$totalPrice" },
+          totalOrders: { $sum: 1 },
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
 
-        // Result summary
-        res.status(200).json({  totalOrders,
-            totalSales: totalSales[0]?.totalSales || 0,
-            trendingTrees,
-            totalTrees,
-            monthlySales, });
-      
-    } catch (error) {
-        console.error("Error fetching admin stats:", error);
-        res.status(500).json({ message: "Failed to fetch admin stats" });
-    }
-})
+    // 6. Trả kết quả
+    res.status(200).json({
+      totalOrders,
+      totalSales,
+      trendingTrees,
+      totalTrees,
+      monthlySales,
+    });
+  } catch (error) {
+    console.error("Lỗi khi lấy thống kê admin:", error);
+    res.status(500).json({ message: "Không thể lấy dữ liệu thống kê" });
+  }
+});
 
 module.exports = router;
